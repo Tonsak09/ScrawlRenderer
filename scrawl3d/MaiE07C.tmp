@@ -24,8 +24,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_nnpn7")
-mapData = "./Maps/Rest.json"
-colors = Array[Color]([Color(0.839216, 0, 0, 1), Color(0, 0.886275, 0, 1), Color(0, 0, 0.831373, 1)])
+mapData = "./Maps/Highway.json"
 
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.96974)

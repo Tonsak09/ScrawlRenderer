@@ -2,6 +2,7 @@ extends Control
 
 
 @export var mapData : String
+@export var colors : Array[Color]
 
 var coords_head : Array = [
 	[ 22.952, 83.271 ],  [ 28.385, 98.623 ],
@@ -17,52 +18,6 @@ var coords_head : Array = [
 	[ 17.262, 47.082 ],  [ 22.973, 55.237 ]
 ]
 
-var SampleMap : Array = [
-	[ 720.01, 414.01],
-	[ 792.01, 414.01 ],
-	[ 792.01, 324.01 ],
-	[ 1043.99, 324.01],
-	[ 1043.99, 468.01],
-	[ 1079.99, 468.01],
-	[ 1079.99, 540.01],
-	[ 1133.99, 540.01],
-	[ 1133.99, 683.99],
-	[ 900.01, 683.99 ],
-	[ 900.01, 503.99 ],
-			  [
-				863.99,
-				503.99
-			  ],
-			  [
-				863.99,
-				557.99
-			  ],
-			  [
-				809.99,
-				557.99
-			  ],
-			  [
-				809.99,
-				575.99
-			  ],
-			  [
-				756.01,
-				575.99
-			  ],
-			  [
-				756.01,
-				557.99
-			  ],
-			  [
-				720.01,
-				557.99
-			  ],
-			  [
-				720.01,
-				414.01
-			  ]
-]
-
 var shapes : Array[PackedVector2Array]
 
 # Called when the node enters the scene tree for the first time.
@@ -72,29 +27,50 @@ func _ready() -> void:
 
 
 func _draw():
-	# We are going to paint with this color.
-	var godot_blue : Color = Color("478cbf")
-	# We pass the PackedVector2Array to draw the shape.
+	#var godot_blue : Color = Color("478cbf")
+	
 	#draw_polygon(head, [ godot_blue ])
+	var counter = 1
 	for shape in shapes:
-		draw_polygon(shape, [ Color.WHITE ])
+		draw_polygon(shape, [ Color.ANTIQUE_WHITE ])
+		counter += 1
 
 func parse_json():
+	
+	# TODO: Find the largest negative for both the x and y axis, 
+	#		then add the positive value for each of those so that
+	#		the entire image begins from the top left 
+	
+	
 	#print_debug(FileAccess.file_exists(mapData))
 	var json_as_text = FileAccess.get_file_as_string(mapData)
 	var json_as_dict = JSON.parse_string(json_as_text)
 	if json_as_dict:
-		#print_debug(json_as_dict["data"]["geometry"][0])
+		#print_debug(json_as_dict["data"]["geometry"])
 		
 		# Each layer 
 		for data in json_as_dict["data"]["geometry"]:
-			
 			var array : PackedVector2Array = []
+			
+			# Don't try to read empty 
+			if json_as_dict["data"]["geometry"][data]["polygons"].size() == 0:
+				continue
+			
+			var smallest = Vector2(0, 0)
 			
 			# Each vertex 
 			for vertex in json_as_dict["data"]["geometry"][data]["polygons"][0][0]:
 				#print_debug(Vector2(vertex[0], vertex[1]))
-				array.append(Vector2(vertex[0], vertex[1]))
+				if vertex[0] < smallest.x:
+					smallest.x = vertex[0]
+				if vertex[1] < smallest.y:
+					smallest.y = vertex[1]
+			
+			print_debug(smallest)
+			for vertex in json_as_dict["data"]["geometry"][data]["polygons"][0][0]:
+				array.append(Vector2(vertex[0] / 3, vertex[1] / 3) + Vector2(-500, 300))
+			
+			print_debug(array)
 			
 			# Add loaded data to be rendered 
 			shapes.push_back(array)
@@ -104,5 +80,5 @@ func float_array_to_Vector2Array(coords : Array) -> PackedVector2Array:
 	# Convert the array of floats into a PackedVector2Array.
 	var array : PackedVector2Array = []
 	for coord in coords:
-		array.append(Vector2(coord[0] / 1.0, coord[1] / 1.0))
+		array.append(Vector2(coord[0], coord[1]))
 	return array

@@ -16,7 +16,8 @@ func GenerateOBJ():
 	
 	# Access the file 
 	var positions2D  = AccessFilePositionalData(path)
-	var objPositions = ExtrudePositions(positions2D, 1.0)
+	var objPositions = ExtrudePositions(positions2D, 200.0)
+	#print_debug(objPositions)
 	
 	WriteToFile("./Output/" + name + ".obj", objPositions)
 	
@@ -29,6 +30,12 @@ func WriteToFile(path : String, objPositions : Array[Vector3]):
 	
 	for objPos in objPositions:
 		content += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
+	
+	# Faces must be made of PREVIOUSLY added indexes 
+	var counter = 1
+	for i in range(0, objPositions.size() - 3):
+		content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+		counter += 3
 	print_debug(content)
 	
 	file.store_string(content)
@@ -40,10 +47,10 @@ func ExtrudePositions(positions : Array[Vector2], extrudeHieght : float) -> Arra
 	
 	# For every point in A to there 3 points in B to make a triangle 
 	# Original, vertical, neighbor 
-	objPositions.resize(positions.size() * 3)
+	objPositions.resize((positions.size() - 1) * 3)
 	
 	var counter = 0
-	for i in range(0, positions.size() - 2): 
+	for i in range(0, positions.size() - 1): 
 		var pos = positions[i]
 		var neighbor = positions[i + 1]
 		

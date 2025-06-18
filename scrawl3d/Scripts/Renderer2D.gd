@@ -66,11 +66,8 @@ func parse_json():
 				if vertex[1] < smallest.y:
 					smallest.y = vertex[1]
 			
-			print_debug(smallest)
 			for vertex in json_as_dict["data"]["geometry"][data]["polygons"][0][0]:
-				array.append(Vector2(vertex[0] / 3, vertex[1] / 3) + Vector2(-500, 300))
-			
-			print_debug(array)
+				array.append(Vector2(vertex[0], vertex[1]) / 2.0 + Vector2(smallest.x, smallest.y))
 			
 			# Add loaded data to be rendered 
 			shapes.push_back(array)

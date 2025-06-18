@@ -1,0 +1,122 @@
+[gd_scene load_steps=7 format=3 uid="uid://sx764maq7mvj"]
+
+[ext_resource type="Script" path="res://Scripts/Renderer2D.gd" id="1_j5yi6"]
+[ext_resource type="Script" path="res://Scripts/MeshGenerator.gd" id="2_vwj1f"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7c2ay"]
+sky_top_color = Color(0.512916, 0.413808, 0.48279, 1)
+sky_horizon_color = Color(0.678229, 0.645702, 0.653947, 1)
+sky_energy_multiplier = 1.55
+ground_horizon_color = Color(0.678229, 0.645702, 0.653947, 1)
+
+[sub_resource type="Sky" id="Sky_fx1t5"]
+sky_material = SubResource("ProceduralSkyMaterial_7c2ay")
+
+[sub_resource type="Environment" id="Environment_e1wao"]
+background_mode = 2
+sky = SubResource("Sky_fx1t5")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_pvhj1"]
+
+[node name="World" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_e1wao")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 228.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(924, 648)
+render_target_update_mode = 4
+
+[node name="ColorRect2" type="ColorRect" parent="SubViewportContainer/SubViewport"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.262932, 0.262932, 0.262932, 1)
+
+[node name="2DRenderingImport" type="Control" parent="SubViewportContainer/SubViewport"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_j5yi6")
+mapData = "./Maps/map.json"
+colors = Array[Color]([Color(0.839216, 0, 0, 1), Color(0, 0.886275, 0, 1), Color(0, 0, 0.831373, 1)])
+
+[node name="MeshGenerator" type="Node" parent="SubViewportContainer/SubViewport" node_paths=PackedStringArray("world", "mapList")]
+script = ExtResource("2_vwj1f")
+world = NodePath("../RenderedWorld")
+mapList = NodePath("../../../Controls/MapList")
+
+[node name="RenderedWorld" type="Node3D" parent="SubViewportContainer/SubViewport"]
+
+[node name="SampleMesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/RenderedWorld"]
+mesh = SubResource("BoxMesh_pvhj1")
+
+[node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport/RenderedWorld"]
+transform = Transform3D(1, 0, 0, 0, 0.924033, 0.382313, 0, -0.382313, 0.924033, 0, 2.55247, 5.16286)
+
+[node name="Controls" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 228.0
+offset_bottom = 648.0
+
+[node name="ControlsBG" type="ColorRect" parent="Controls"]
+layout_mode = 0
+offset_right = 228.0
+offset_bottom = 648.0
+color = Color(0.148273, 0.290083, 0.331237, 1)
+
+[node name="Generate3D" type="Button" parent="Controls"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -114.0
+offset_top = -151.0
+offset_right = 114.0
+offset_bottom = -120.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Generate 3D"
+
+[node name="MapList" type="ItemList" parent="Controls"]
+layout_mode = 0
+offset_right = 228.0
+offset_bottom = 165.0
+item_count = 7
+item_0/text = "BearCave"
+item_1/text = "Entrance"
+item_2/text = "Highway"
+item_3/text = "map"
+item_4/text = "Rest"
+item_5/text = "VampireCircle"
+item_6/text = "Wolfden"
+
+[connection signal="pressed" from="Controls/Generate3D" to="SubViewportContainer/SubViewport/MeshGenerator" method="GenerateOBJ"]

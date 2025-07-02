@@ -2,12 +2,12 @@ extends Node
 
 @export var world : Node3D
 @export var mapList : ItemList
+@export var height : float 
 
 var triangulation : Triangulation2D
 
 func _ready() -> void:
 	triangulation = Triangulation2D.new()
-	var sampleEdge = Edge2D.new(Vector2(0,0), Vector2(1,1))
 
 func GenerateOBJ():
 	
@@ -21,41 +21,63 @@ func GenerateOBJ():
 	var path = "./Maps/" + name + ".json"
 	
 	# Access the file 
-	var positions2D  = AccessFilePositionalData(path)
-	var objPositions = ExtrudePositions(positions2D, 5.0)
+	var walls = AccessFilePositionalData(path)
+	var extrudedWalls : Array
+	
+	for wall in walls:
+		extrudedWalls.push_back(ExtrudePositions(wall,height))
+	
+	WriteToFile("./Output/" + name + ".obj", extrudedWalls)
+	
+	
+	#var positions2D  = AccessFilePositionalData(path)
 	
 	# Triangulate top
-	var cap = triangulation.Triangulate(positions2D)
-	#print_debug(objPositions)
+	#var cap = triangulation.Triangulate(positions2D)
 	
-	WriteToFile("./Output/" + name + ".obj", objPositions)
 
 
 # Write array of 3D positions to a .obj file format 
-func WriteToFile(path : String, objPositions : Array[Vector3]):
+func WriteToFile(path : String, polyGroups : Array):
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	var content : String
-	
-	# Adding verticies 
-	for objPos in objPositions:
-		content += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
-	
-	var topFace = "f "
-	
-	# Faces must be made of PREVIOUSLY added indexes 
 	var counter = 1
-	for i in range(0, objPositions.size() - 3):
-		content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
-		topFace += str(counter + 1) + " "
-		counter += 3
 	
-	content += topFace 
-	print_debug(content)
+	var verticies = ""
+	var faces = ""
 	
+	for objPositions in polyGroups:
+		# Adding verticies 
+		for objPos in objPositions:
+			verticies += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
+		
+		# Faces must be made of PREVIOUSLY added indexes 
+		for i in range(0, objPositions.size() - 3):
+			faces += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			#topFace += str(counter + 1) + " "
+			counter += 3
+		
+		#print_debug(content)
+		
+		#for triangle in cap:
+			## TODO: Sort triangle points when adding face
+			#content += "v " + str(triangle.pointA.x) + " " + str(height) + " " + str(triangle.pointA.y) + " 1\n"
+			#content += "v " + str(triangle.pointB.x) + " " + str(height) + " " + str(triangle.pointB.y) + " 1\n"
+			#content += "v " + str(triangle.pointC.x) + " " + str(height) + " " + str(triangle.pointC.y) + " 1\n"
+		#
+		#for i in range(0, cap.size()):
+			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			#
+			##topFace += str(counter + 1) + " "
+			#counter += 9
+	
+	content += verticies + faces
 	file.store_string(content)
 
 # Extrudes 2D plane of points vertically into 3D space 
-func ExtrudePositions(positions : Array[Vector2], extrudeHieght : float) -> Array[Vector3]:
+func ExtrudePositions(positions : Array, extrudeHieght : float) -> Array[Vector3]:
 	
 	var objPositions : Array[Vector3]
 	
@@ -67,8 +89,8 @@ func ExtrudePositions(positions : Array[Vector2], extrudeHieght : float) -> Arra
 	
 	var counter = 0
 	for i in range(0, positions.size() - 1): 
-		var pos = positions[i]
-		var neighbor = positions[i + 1]
+		var pos = Vector2(positions[i][0], positions[i][1]) 
+		var neighbor = Vector2(positions[i + 1][0], positions[i + 1][1]) 
 		
 		# First triangle of the quad 
 		objPositions[counter + 0] = Vector3(pos.x, 0.0, pos.y)
@@ -85,9 +107,9 @@ func ExtrudePositions(positions : Array[Vector2], extrudeHieght : float) -> Arra
 	return objPositions
 	
 # Reads map data to generate 2D polygon data 
-func AccessFilePositionalData(path : String) -> Array[Vector2]:
+func AccessFilePositionalData(path : String) -> Array:
 	
-	var positions : Array[Vector2]
+	var walls : Array
 	
 	var json_as_text = FileAccess.get_file_as_string(path)
 	var json_as_dict = JSON.parse_string(json_as_text) 
@@ -101,8 +123,29 @@ func AccessFilePositionalData(path : String) -> Array[Vector2]:
 				continue
 			
 			# Add vertex data to array 
-			for vertex in json_as_dict["data"]["geometry"][data]["polygons"][0][0]:
+			print_debug("There are " + str(json_as_dict["data"]["geometry"][data]["polygons"].size()) + " major sections")
+			
+			ProcessMajorPolysections(json_as_dict["data"]["geometry"][data]["polygons"], walls)
+			
+			
+			#for major in json_as_dict["data"]["geometry"][data]["polygons"]:
+			#	print_debug("There are " + str(major.size()) + " minor sections")
+			
+			#var wallsImport = json_as_dict["data"]["geometry"][data]["polygons"][0]
+			#for wall in wallsImport:
+				#var positions : Array[Vector2]
+				#for vertex in wall:
+					#positions.push_back(Vector2(vertex[0], vertex[1]) / 100)
+				#
+				#walls.push_back(wall)
+	
+	return walls
+
+func ProcessMajorPolysections(majors, walls : Array):
+	for major in majors:
+		for wall in major:
+			var positions : Array[Vector2]
+			for vertex in wall:
 				positions.push_back(Vector2(vertex[0], vertex[1]) / 100)
 			
-	
-	return positions
+			walls.push_back(wall)

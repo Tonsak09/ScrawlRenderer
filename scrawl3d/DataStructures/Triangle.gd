@@ -23,8 +23,11 @@ func GetCircumCircleCenter() -> Vector2:
 	
 	var centerA = edgeA.GetMidpoint()
 	var centerB = edgeB.GetMidpoint()
-	var dirA = -edgeA.GetDir()
-	var dirB = -edgeB.GetDir()
+	var dirA = edgeA.GetDir().rotated(90)
+	var dirB = edgeB.GetDir().rotated(90)
+	
+	#print_debug(edgeA.pointA)
+	#print_debug(edgeA.pointB)
 	
 	var center = Geometry2D.line_intersects_line(centerA, dirA, centerB, dirB)
 	return center

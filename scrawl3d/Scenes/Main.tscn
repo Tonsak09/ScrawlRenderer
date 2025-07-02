@@ -71,6 +71,7 @@ colors = Array[Color]([Color(0.839216, 0, 0, 1), Color(0, 0.886275, 0, 1), Color
 script = ExtResource("2_vwj1f")
 world = NodePath("../RenderedWorld")
 mapList = NodePath("../../../Controls/MapList")
+height = 5.0
 
 [node name="RenderedWorld" type="Node3D" parent="SubViewportContainer/SubViewport"]
 

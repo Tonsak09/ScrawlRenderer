@@ -23,22 +23,27 @@ func GenerateOBJ():
 	# Access the file 
 	var walls = AccessFilePositionalData(path)
 	var extrudedWalls : Array
+	var combined : Array
 	
 	for wall in walls:
 		extrudedWalls.push_back(ExtrudePositions(wall,height))
+		combined.append_array(wall)
 	
-	WriteToFile("./Output/" + name + ".obj", extrudedWalls)
+	var triangles : Array[Triangle2D]
+	var cap = triangulation.Triangulate(combined, triangles)
+	
+	WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
 	
 	
 	#var positions2D  = AccessFilePositionalData(path)
 	
 	# Triangulate top
-	#var cap = triangulation.Triangulate(positions2D)
+	
 	
 
 
 # Write array of 3D positions to a .obj file format 
-func WriteToFile(path : String, polyGroups : Array):
+func WriteToFile(path : String, polyGroups : Array, cap : Array):
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	var content : String
 	var counter = 1
@@ -51,25 +56,24 @@ func WriteToFile(path : String, polyGroups : Array):
 		for objPos in objPositions:
 			verticies += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
 		
+		for triangle in cap:
+			# TODO: Sort triangle points when adding face
+			content += "v " + str(triangle.pointA.x) + " " + str(height) + " " + str(triangle.pointA.y) + " 1\n"
+			content += "v " + str(triangle.pointB.x) + " " + str(height) + " " + str(triangle.pointB.y) + " 1\n"
+			content += "v " + str(triangle.pointC.x) + " " + str(height) + " " + str(triangle.pointC.y) + " 1\n"
+		
 		# Faces must be made of PREVIOUSLY added indexes 
 		for i in range(0, objPositions.size() - 3):
 			faces += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
 			#topFace += str(counter + 1) + " "
 			counter += 3
 		
-		#for triangle in cap:
-			## TODO: Sort triangle points when adding face
-			#content += "v " + str(triangle.pointA.x) + " " + str(height) + " " + str(triangle.pointA.y) + " 1\n"
-			#content += "v " + str(triangle.pointB.x) + " " + str(height) + " " + str(triangle.pointB.y) + " 1\n"
-			#content += "v " + str(triangle.pointC.x) + " " + str(height) + " " + str(triangle.pointC.y) + " 1\n"
-		#
-		#for i in range(0, cap.size()):
-			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
-			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
-			#content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
-			#
-			##topFace += str(counter + 1) + " "
-			#counter += 9
+		for i in range(0, cap.size()):
+			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			
+			counter += 9
 	
 	content += verticies + faces
 	file.store_string(content)

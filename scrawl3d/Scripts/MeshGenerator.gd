@@ -57,8 +57,6 @@ func WriteToFile(path : String, polyGroups : Array):
 			#topFace += str(counter + 1) + " "
 			counter += 3
 		
-		#print_debug(content)
-		
 		#for triangle in cap:
 			## TODO: Sort triangle points when adding face
 			#content += "v " + str(triangle.pointA.x) + " " + str(height) + " " + str(triangle.pointA.y) + " 1\n"
@@ -109,40 +107,35 @@ func ExtrudePositions(positions : Array, extrudeHieght : float) -> Array[Vector3
 # Reads map data to generate 2D polygon data 
 func AccessFilePositionalData(path : String) -> Array:
 	
+	# NOTE: Withing the polygons sections there are two arrays, one for the 
+	#       shape overall and then other for the shapes that make up and cutup
+	#       the shape. The first enty in the polygon is the main shape while 
+	#       the rest are used to make holes inside of it. 
+	
 	var walls : Array
 	
 	var json_as_text = FileAccess.get_file_as_string(path)
 	var json_as_dict = JSON.parse_string(json_as_text) 
 	
-	if json_as_dict:
-		# Each layer 
-		for data in json_as_dict["data"]["geometry"]:
-			
-			# Don't try to read empty 
-			if json_as_dict["data"]["geometry"][data]["polygons"].size() == 0:
-				continue
-			
-			# Add vertex data to array 
-			print_debug("There are " + str(json_as_dict["data"]["geometry"][data]["polygons"].size()) + " major sections")
-			
-			ProcessMajorPolysections(json_as_dict["data"]["geometry"][data]["polygons"], walls)
-			
-			
-			#for major in json_as_dict["data"]["geometry"][data]["polygons"]:
-			#	print_debug("There are " + str(major.size()) + " minor sections")
-			
-			#var wallsImport = json_as_dict["data"]["geometry"][data]["polygons"][0]
-			#for wall in wallsImport:
-				#var positions : Array[Vector2]
-				#for vertex in wall:
-					#positions.push_back(Vector2(vertex[0], vertex[1]) / 100)
-				#
-				#walls.push_back(wall)
+	if !json_as_dict:
+		return walls
+	
+	# Each layer 
+	for data in json_as_dict["data"]["geometry"]:
+		# Don't try to read empty 
+		if json_as_dict["data"]["geometry"][data]["polygons"].size() == 0:
+			continue
+		
+		# Add vertex data to array 
+		print_debug("There are " + str(json_as_dict["data"]["geometry"][data]["polygons"].size()) + " major sections")
+		
+		ProcessMajorPolysections(json_as_dict["data"]["geometry"][data]["polygons"], walls)
 	
 	return walls
 
 func ProcessMajorPolysections(majors, walls : Array):
 	for major in majors:
+		print_debug("This polygon has " + str(major.size()))
 		for wall in major:
 			var positions : Array[Vector2]
 			for vertex in wall:

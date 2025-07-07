@@ -30,7 +30,8 @@ func GenerateOBJ():
 		combined.append_array(wall)
 	
 	var triangles : Array[Triangle2D]
-	var cap = triangulation.Triangulate(combined, triangles)
+	var corners = combined.size()
+	var cap = triangulation.Triangulate(combined, triangles, corners)
 	
 	WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
 	

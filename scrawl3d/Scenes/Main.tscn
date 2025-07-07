@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://sx764maq7mvj"]
+[gd_scene load_steps=9 format=3 uid="uid://sx764maq7mvj"]
 
 [ext_resource type="Script" path="res://Scripts/Renderer2D.gd" id="1_j5yi6"]
 [ext_resource type="Script" path="res://Scripts/MeshGenerator.gd" id="2_vwj1f"]
+[ext_resource type="Script" path="res://Scripts/CamController.gd" id="3_td78p"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7c2ay"]
 sky_top_color = Color(0.512916, 0.413808, 0.48279, 1)
@@ -18,6 +19,10 @@ sky = SubResource("Sky_fx1t5")
 tonemap_mode = 2
 glow_enabled = true
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rarq5"]
+cull_mode = 2
+albedo_color = Color(0.666667, 0.666667, 0.815686, 1)
+
 [sub_resource type="BoxMesh" id="BoxMesh_pvhj1"]
 
 [node name="World" type="Control"]
@@ -27,6 +32,12 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.203505, 0.979074, 0, -0.979074, -0.203505, 0, 13.3775, 0)
+visible = false
+light_color = Color(1, 0.702333, 0.62, 1)
+shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_e1wao")
@@ -67,24 +78,31 @@ script = ExtResource("1_j5yi6")
 mapData = "./Maps/map.json"
 colors = Array[Color]([Color(0.839216, 0, 0, 1), Color(0, 0.886275, 0, 1), Color(0, 0, 0.831373, 1)])
 
-[node name="MeshGenerator" type="Node" parent="SubViewportContainer/SubViewport" node_paths=PackedStringArray("world", "mapList")]
+[node name="MeshGenerator" type="Node" parent="SubViewportContainer/SubViewport" node_paths=PackedStringArray("world", "mapList", "meshRenderer", "hasRoofCheckBox")]
 script = ExtResource("2_vwj1f")
 world = NodePath("../RenderedWorld")
 mapList = NodePath("../../../Controls/MapList")
-height = 5.0
+height = 1.0
+meshRenderer = NodePath("../RenderedWorld/SampleMesh")
+hasRoofCheckBox = NodePath("../../../Controls/CheckBox")
 
 [node name="RenderedWorld" type="Node3D" parent="SubViewportContainer/SubViewport"]
 
 [node name="SampleMesh" type="MeshInstance3D" parent="SubViewportContainer/SubViewport/RenderedWorld"]
+material_override = SubResource("StandardMaterial3D_rarq5")
 mesh = SubResource("BoxMesh_pvhj1")
 
 [node name="Camera3D" type="Camera3D" parent="SubViewportContainer/SubViewport/RenderedWorld"]
-transform = Transform3D(1, 0, 0, 0, 0.924033, 0.382313, 0, -0.382313, 0.924033, 0, 2.55247, 5.16286)
+transform = Transform3D(1, 0, 0, 0, 0.924033, 0.382313, 0, -0.382313, 0.924033, 0, 10.3461, 11.1936)
+script = ExtResource("3_td78p")
+speed = 10.0
+mouseSpeed = 0.001
 
 [node name="Controls" type="Control" parent="."]
-anchors_preset = 0
-offset_right = 228.0
-offset_bottom = 648.0
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
 
 [node name="ControlsBG" type="ColorRect" parent="Controls"]
 layout_mode = 0
@@ -99,10 +117,9 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -114.0
-offset_top = -151.0
-offset_right = 114.0
-offset_bottom = -120.0
+offset_top = -61.0
+offset_right = 228.0
+offset_bottom = -30.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Generate 3D"
@@ -119,5 +136,17 @@ item_3/text = "map"
 item_4/text = "Rest"
 item_5/text = "VampireCircle"
 item_6/text = "Wolfden"
+
+[node name="CheckBox" type="CheckBox" parent="Controls"]
+layout_mode = 0
+offset_top = 200.0
+offset_right = 24.0
+offset_bottom = 224.0
+text = "Roof"
+
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 27.7162, 0)
+light_energy = 10.739
+spot_range = 40.3086
 
 [connection signal="pressed" from="Controls/Generate3D" to="SubViewportContainer/SubViewport/MeshGenerator" method="GenerateOBJ"]

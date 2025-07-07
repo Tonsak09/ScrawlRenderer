@@ -3,11 +3,16 @@ extends Node
 @export var world : Node3D
 @export var mapList : ItemList
 @export var height : float 
+@export var meshRenderer : MeshInstance3D
+@export var hasRoofCheckBox : CheckBox
 
 var triangulation : Triangulation2D
+var st : SurfaceTool
+
 
 func _ready() -> void:
 	triangulation = Triangulation2D.new()
+	st = SurfaceTool.new()
 
 func GenerateOBJ():
 	
@@ -29,18 +34,13 @@ func GenerateOBJ():
 		extrudedWalls.push_back(ExtrudePositions(wall,height))
 		combined.append_array(wall)
 	
+	# Triangulate top
 	var triangles : Array[Triangle2D]
 	var corners = combined.size()
 	var cap = triangulation.Triangulate(combined, triangles, corners)
 	
 	WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
-	
-	
-	#var positions2D  = AccessFilePositionalData(path)
-	
-	# Triangulate top
-	
-	
+	GenerateInWorld(extrudedWalls, cap)
 
 
 # Write array of 3D positions to a .obj file format 
@@ -132,18 +132,56 @@ func AccessFilePositionalData(path : String) -> Array:
 			continue
 		
 		# Add vertex data to array 
-		print_debug("There are " + str(json_as_dict["data"]["geometry"][data]["polygons"].size()) + " major sections")
-		
-		ProcessMajorPolysections(json_as_dict["data"]["geometry"][data]["polygons"], walls)
+		# NOTE: Polygons contain their main shape and then holes for the rest of
+		#       the array 
+		ProcessPloygons(json_as_dict["data"]["geometry"][data]["polygons"], walls)
 	
 	return walls
 
-func ProcessMajorPolysections(majors, walls : Array):
+func ProcessPloygons(majors, walls : Array):
+	
+	var sum : Vector2
+	var count : int 
+	
 	for major in majors:
-		print_debug("This polygon has " + str(major.size()))
+		print_debug("This polygon has " + str(major.size()) + " shapes")
 		for wall in major:
-			var positions : Array[Vector2]
-			for vertex in wall:
-				positions.push_back(Vector2(vertex[0], vertex[1]) / 100)
+			for v in wall.size():
+				var pos = Vector2(wall[v][0], wall[v][1]) / 10
+				wall[v][0] = pos.x
+				wall[v][1] = pos.y
+				sum += pos
+				count += 1
 			
 			walls.push_back(wall)
+	
+	var avg = sum / count
+	for wall in walls:
+		for v in wall.size():
+			wall[v][0] -= avg.x
+			wall[v][1] -= avg.y
+
+func GenerateInWorld(walls, capTriangles):
+	st.clear()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES) 
+	
+	for wall in walls:
+		for point in wall:
+			var p = Vector3(point[0], point[1], point[2])
+			st.add_vertex(p)
+		if hasRoofCheckBox.button_pressed:
+			for triangle in capTriangles:
+				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
+				st.add_vertex(Vector3(triangle.pointB.x, height, triangle.pointB.y))
+				st.add_vertex(Vector3(triangle.pointC.x, height, triangle.pointC.y))
+		for triangle in capTriangles:
+			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
+			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
+			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
+			
+
+			
+		#st.generate_normals()
+	
+	var mesh = st.commit()
+	meshRenderer.mesh = mesh

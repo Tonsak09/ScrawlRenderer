@@ -32,15 +32,19 @@ func GenerateOBJ():
 	
 	for wall in walls:
 		extrudedWalls.push_back(ExtrudePositions(wall,height))
-		combined.append_array(wall)
+		#combined.append_array(wall)
+		
+		# Triangulate top
+		var cap : Array[Triangle2D]
+		var corners = wall.size()
+		triangulation.Triangulate(wall, cap, corners)
+		
+		WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
+		GenerateInWorld(extrudedWalls, cap)
 	
-	# Triangulate top
-	var triangles : Array[Triangle2D]
-	var corners = combined.size()
-	var cap = triangulation.Triangulate(combined, triangles, corners)
 	
-	WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
-	GenerateInWorld(extrudedWalls, cap)
+	
+	
 
 
 # Write array of 3D positions to a .obj file format 
@@ -69,15 +73,22 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 			#topFace += str(counter + 1) + " "
 			counter += 3
 		
+		# f 1//1 2//4 5//11
 		for i in range(0, cap.size()):
 			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			counter += 3
 			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			counter += 3
 			content += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
+			counter += 3
 			
-			counter += 9
+			
 	
 	content += verticies + faces
 	file.store_string(content)
+
+func DrawFace(point, height, ):
+	pass
 
 # Extrudes 2D plane of points vertically into 3D space 
 func ExtrudePositions(positions : Array, extrudeHieght : float) -> Array[Vector3]:
@@ -166,9 +177,14 @@ func GenerateInWorld(walls, capTriangles):
 	st.begin(Mesh.PRIMITIVE_TRIANGLES) 
 	
 	for wall in walls:
+		
+		var counter = 1
+		
 		for point in wall:
 			var p = Vector3(point[0], point[1], point[2])
 			st.add_vertex(p)
+			counter += 1
+		
 		if hasRoofCheckBox.button_pressed:
 			for triangle in capTriangles:
 				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
@@ -178,9 +194,9 @@ func GenerateInWorld(walls, capTriangles):
 			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
 			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
 			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
-			
-
-			
+		st.index()
+		
+		
 		#st.generate_normals()
 	
 	var mesh = st.commit()

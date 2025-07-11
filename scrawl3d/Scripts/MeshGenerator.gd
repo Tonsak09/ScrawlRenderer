@@ -5,15 +5,22 @@ extends Node
 @export var height : float 
 @export var meshRenderer : MeshInstance3D
 @export var hasRoofCheckBox : CheckBox
+@export var triangleCorners : Array[Node3D]
 
 var triangulation : Triangulation2D
 var st : SurfaceTool
 
 
+var extrudedWalls : Array
+var cap : Array[Triangle2D]
+
+
 func _ready() -> void:
 	triangulation = Triangulation2D.new()
 	st = SurfaceTool.new()
-
+	
+	triangulation.TrianglesUpdated.connect(UpdateWorldMesh)
+	triangulation.TriangleChecking.connect(UpdateTriangleVisual)
 func GenerateOBJ():
 	
 	# Ensure valid 
@@ -27,7 +34,6 @@ func GenerateOBJ():
 	
 	# Access the file 
 	var walls = AccessFilePositionalData(path)
-	var extrudedWalls : Array
 	var combined : Array
 	
 	for wall in walls:
@@ -35,16 +41,12 @@ func GenerateOBJ():
 		#combined.append_array(wall)
 		
 		# Triangulate top
-		var cap : Array[Triangle2D]
+		var allPoints = wall.duplicate()
 		var corners = wall.size()
-		triangulation.Triangulate(wall, cap, corners)
+		triangulation.Triangulate(allPoints, wall, cap, corners)
 		
 		WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
 		GenerateInWorld(extrudedWalls, cap)
-	
-	
-	
-	
 
 
 # Write array of 3D positions to a .obj file format 
@@ -86,9 +88,6 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 	
 	content += verticies + faces
 	file.store_string(content)
-
-func DrawFace(point, height, ):
-	pass
 
 # Extrudes 2D plane of points vertically into 3D space 
 func ExtrudePositions(positions : Array, extrudeHieght : float) -> Array[Vector3]:
@@ -201,3 +200,14 @@ func GenerateInWorld(walls, capTriangles):
 	
 	var mesh = st.commit()
 	meshRenderer.mesh = mesh
+
+func UpdateWorldMesh():
+	GenerateInWorld(extrudedWalls, cap)
+
+func UpdateTriangleVisual():
+	var tri = triangulation.currTriangle
+	
+	triangleCorners[0].global_position = Vector3(tri.pointA.x, height, tri.pointA.y)
+	triangleCorners[1].global_position = Vector3(tri.pointB.x, height, tri.pointB.y)
+	triangleCorners[2].global_position = Vector3(tri.pointC.x, height, tri.pointC.y)
+	

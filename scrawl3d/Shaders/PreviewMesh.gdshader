@@ -33,7 +33,7 @@ void fragment()
 	vec3 color = mix(baseColor, lineColor, l);
 	//COLOR = vec4(color * 1.0, 1.0);
 
-	ALBEDO = mix(color, round(world.yyy), round(world.y));
+	ALBEDO = mix(color, round(world.yyy), clamp(round(world.y), 0, 1));
 
 }
 

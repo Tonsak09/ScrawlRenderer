@@ -180,14 +180,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-item_count = 7
-item_0/text = "BearCave"
-item_1/text = "Entrance"
-item_2/text = "Highway"
-item_3/text = "map"
-item_4/text = "Rest"
-item_5/text = "VampireCircle"
-item_6/text = "Wolfden"
 script = ExtResource("5_si8gl")
 
 [node name="CheckBox" type="CheckBox" parent="Controls/TabContainer/Import"]
@@ -220,6 +212,15 @@ offset_right = -27.0
 offset_bottom = 298.0
 grow_horizontal = 2
 text = "Generate"
+
+[node name="ColorRect" type="ColorRect" parent="Controls/TabContainer/Import"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 185.0
+offset_bottom = 187.0
+grow_horizontal = 2
+color = Color(1, 1, 1, 0.494118)
 
 [node name="Style" type="Control" parent="Controls/TabContainer"]
 visible = false

@@ -194,16 +194,15 @@ func GenerateInWorld(walls, capTriangles):
 			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
 			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
 		st.index()
-		
-		
-		#st.generate_normals()
 	
 	var mesh = st.commit()
 	meshRenderer.mesh = mesh
 
+# Callable generation 
 func UpdateWorldMesh():
 	GenerateInWorld(extrudedWalls, cap)
 
+# Sets the debug spheres to the current triangle 
 func UpdateTriangleVisual():
 	var tri = triangulation.currTriangle
 	

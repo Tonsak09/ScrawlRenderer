@@ -12,10 +12,6 @@ func Triangulate(allPoints : Array, points : Array, triangles : Array[Triangle2D
 	
 	var i = 0
 	while i < points.size() && points.size() >= 3:
-		
-		if points.size() == 4:
-			print_debug("Hehe")
-		
 		var j = (i + 1) % corners
 		var k = (j + 1) % corners
 		
@@ -66,7 +62,6 @@ func Triangulate(allPoints : Array, points : Array, triangles : Array[Triangle2D
 		assert("FAILED") 
 	
 	print_debug("Mesh triangulated successfulyl!")
-	print_debug(points.size())
 	
 	return triangles
 

@@ -11,7 +11,7 @@ var triangulation : Triangulation2D
 var st : SurfaceTool
 
 
-var extrudedWalls : Array
+var wallVerticies : Array
 var cap : Array[Triangle2D]
 
 
@@ -34,7 +34,7 @@ func GenerateOBJ():
 	var path = "./Maps/" + name + ".json"
 	
 	# Cleanup old
-	extrudedWalls.clear()
+	wallVerticies.clear()
 	cap.clear()
 	
 	# Access the file 
@@ -42,7 +42,7 @@ func GenerateOBJ():
 	var combined : Array
 	
 	for wall in walls:
-		extrudedWalls.push_back(ExtrudePositions(wall,height))
+		wallVerticies.push_back(ExtrudePositions(wall,height))
 		#combined.append_array(wall)
 		
 		# Triangulate top
@@ -50,8 +50,8 @@ func GenerateOBJ():
 		var corners = wall.size()
 		triangulation.Triangulate(allPoints, wall, cap, corners)
 		
-		WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
-		GenerateInWorld(extrudedWalls, cap)
+		WriteToFile("./Output/" + name + ".obj", wallVerticies, cap)
+		UpdateWorldMesh()
 
 # Write array of 3D positions to a .obj file format 
 func WriteToFile(path : String, polyGroups : Array, cap : Array):
@@ -62,9 +62,9 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 	var verticies = ""
 	var faces = ""
 	
-	for objPositions in polyGroups:
+	for objShape in polyGroups:
 		# Adding verticies 
-		for objPos in objPositions:
+		for objPos in objShape:
 			verticies += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
 		
 		for triangle in cap:
@@ -74,7 +74,7 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 			content += "v " + str(triangle.pointC.x) + " " + str(height) + " " + str(triangle.pointC.y) + " 1\n"
 		
 		# Faces must be made of PREVIOUSLY added indexes 
-		for i in range(0, objPositions.size() - 3):
+		for i in range(0, objShape.size() - 3):
 			faces += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
 			#topFace += str(counter + 1) + " "
 			counter += 3
@@ -152,7 +152,8 @@ func AccessFilePositionalData(path : String) -> Array:
 	
 	return walls
 
-func ProcessPloygons(polyGroup, walls : Array):
+# Reads the polyGroup data and brings the main poly data into the shapes 
+func ProcessPloygons(polyGroup, shapes : Array):
 	
 	var sum : Vector2
 	var count : int 
@@ -179,19 +180,21 @@ func ProcessPloygons(polyGroup, walls : Array):
 				count += 1
 				index += 1
 			
-			walls.push_back(polygon)
+			shapes.push_back(polygon)
 	
 	var avg = sum / count
-	for wall in walls:
-		for v in wall.size():
-			wall[v][0] -= avg.x
-			wall[v][1] -= avg.y
+	for shape in shapes:
+		for v in shape.size():
+			shape[v][0] -= avg.x
+			shape[v][1] -= avg.y
 
-func GenerateInWorld(walls, capTriangles):
+# Callable generation 
+func UpdateWorldMesh():
+	
 	st.clear()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES) 
 	
-	for wall in walls:
+	for wall in wallVerticies:
 		
 		var counter = 1
 		
@@ -201,11 +204,11 @@ func GenerateInWorld(walls, capTriangles):
 			counter += 1
 		
 		if hasRoofCheckBox.button_pressed:
-			for triangle in capTriangles:
+			for triangle in cap:
 				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
 				st.add_vertex(Vector3(triangle.pointB.x, height, triangle.pointB.y))
 				st.add_vertex(Vector3(triangle.pointC.x, height, triangle.pointC.y))
-		for triangle in capTriangles:
+		for triangle in cap:
 			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
 			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
 			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
@@ -213,10 +216,6 @@ func GenerateInWorld(walls, capTriangles):
 	
 	var mesh = st.commit()
 	meshRenderer.mesh = mesh
-
-# Callable generation 
-func UpdateWorldMesh():
-	GenerateInWorld(extrudedWalls, cap)
 
 # Sets the debug spheres to the current triangle 
 func UpdateTriangleVisual():

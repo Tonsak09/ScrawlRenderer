@@ -143,7 +143,7 @@ material_override = SubResource("ShaderMaterial_w6vjb")
 mesh = SubResource("BoxMesh_pvhj1")
 
 [node name="Camera3D" type="Camera3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld/RenderedWorld"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.3461, 11.1936)
+transform = Transform3D(1, 0, 0, 0, 0.924033, 0.382313, 0, -0.382313, 0.924033, 0, 10.3461, 11.1936)
 script = ExtResource("3_td78p")
 speed = 15.0
 mouseSpeed = 0.001

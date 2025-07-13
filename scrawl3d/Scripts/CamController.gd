@@ -27,7 +27,7 @@ func _process(delta: float) -> void:
 		translate(Vector3.DOWN * speed * delta)
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and event.button_mask & 1:
+	if event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_RIGHT: 
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# modify accumulated mouse rotation
 		rotX += event.relative.x * mouseSpeed
@@ -38,3 +38,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if Input.is_action_just_released("Click"):
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func UpdateMoveSpeed(value: float):
+	speed = value

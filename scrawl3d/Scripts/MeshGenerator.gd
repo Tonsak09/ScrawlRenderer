@@ -21,6 +21,7 @@ func _ready() -> void:
 	
 	triangulation.TrianglesUpdated.connect(UpdateWorldMesh)
 	triangulation.TriangleChecking.connect(UpdateTriangleVisual)
+
 func GenerateOBJ():
 	
 	# Ensure valid 
@@ -31,6 +32,10 @@ func GenerateOBJ():
 		return
 	
 	var path = "./Maps/" + name + ".json"
+	
+	# Cleanup old
+	extrudedWalls.clear()
+	cap.clear()
 	
 	# Access the file 
 	var walls = AccessFilePositionalData(path)
@@ -47,7 +52,6 @@ func GenerateOBJ():
 		
 		WriteToFile("./Output/" + name + ".obj", extrudedWalls, cap)
 		GenerateInWorld(extrudedWalls, cap)
-
 
 # Write array of 3D positions to a .obj file format 
 func WriteToFile(path : String, polyGroups : Array, cap : Array):
@@ -148,22 +152,34 @@ func AccessFilePositionalData(path : String) -> Array:
 	
 	return walls
 
-func ProcessPloygons(majors, walls : Array):
+func ProcessPloygons(polyGroup, walls : Array):
 	
 	var sum : Vector2
 	var count : int 
 	
-	for major in majors:
+	for major in polyGroup:
 		print_debug("This polygon has " + str(major.size()) + " shapes")
-		for wall in major:
-			for v in wall.size():
-				var pos = Vector2(wall[v][0], wall[v][1]) / 10
-				wall[v][0] = pos.x
-				wall[v][1] = pos.y
+		
+		var index = 0
+		for polygon in major:
+			
+			# TODO: If more than one shape, any shape after the first
+			#       should be a hole that cuts out the main polygon 
+			
+			# Skip hole polygons 
+			if index > 0:
+				continue
+			
+			# Verticies in the polygon 
+			for v in polygon.size():
+				var pos = Vector2(polygon[v][0], polygon[v][1]) / 10
+				polygon[v][0] = pos.x
+				polygon[v][1] = pos.y
 				sum += pos
 				count += 1
+				index += 1
 			
-			walls.push_back(wall)
+			walls.push_back(polygon)
 	
 	var avg = sum / count
 	for wall in walls:

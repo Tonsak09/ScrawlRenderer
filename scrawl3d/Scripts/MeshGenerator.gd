@@ -3,15 +3,18 @@ extends Node
 @export var world : Node3D
 @export var mapList : ItemList
 @export var height : float 
-@export var meshRenderer : MeshInstance3D
+@export var renderedWorld : Node3D
+#@export var meshRenderer : MeshInstance3D
 @export var hasRoofCheckBox : CheckBox
 @export var triangleCorners : Array[Node3D]
+
+var meshRender = preload("res://Prefabs/SampleMesh.tscn")
 
 var triangulation : Triangulation2D
 var st : SurfaceTool
 
 
-var wallVerticies : Array
+var meshPolygons : Array
 var cap : Array[Triangle2D]
 
 
@@ -34,23 +37,25 @@ func GenerateOBJ():
 	var path = "./Maps/" + name + ".json"
 	
 	# Cleanup old
-	wallVerticies.clear()
+	meshPolygons.clear()
 	cap.clear()
 	
 	# Access the file 
-	var walls = AccessFilePositionalData(path)
+	var polyGroups = AccessFilePositionalData(path)
 	var combined : Array
 	
-	for wall in walls:
-		wallVerticies.push_back(ExtrudePositions(wall,height))
-		#combined.append_array(wall)
+	for polyGroup in polyGroups:
 		
-		# Triangulate top
-		var allPoints = wall.duplicate()
-		var corners = wall.size()
-		triangulation.Triangulate(allPoints, wall, cap, corners)
+		var isMainPolygon = true
+		for polygon in polyGroup:
+			meshPolygons.push_back(ExtrudePositions(polygon, height))
 		
-		WriteToFile("./Output/" + name + ".obj", wallVerticies, cap)
+		# Triangulate top for an entire polygroup 
+		var allPoints = polyGroup[0].duplicate()
+		var corners = polyGroup[0].size()
+		triangulation.Triangulate(allPoints, polyGroup[0], cap, corners)
+		
+		#WriteToFile("./Output/" + name + ".obj", wallVerticies, cap)
 		UpdateWorldMesh()
 
 # Write array of 3D positions to a .obj file format 
@@ -62,9 +67,9 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 	var verticies = ""
 	var faces = ""
 	
-	for objShape in polyGroups:
+	for polygon in polyGroups:
 		# Adding verticies 
-		for objPos in objShape:
+		for objPos in polygon:
 			verticies += "v " + str(objPos.x) + " " + str(objPos.y) + " " + str(objPos.z) + " 1\n"
 		
 		for triangle in cap:
@@ -74,7 +79,7 @@ func WriteToFile(path : String, polyGroups : Array, cap : Array):
 			content += "v " + str(triangle.pointC.x) + " " + str(height) + " " + str(triangle.pointC.y) + " 1\n"
 		
 		# Faces must be made of PREVIOUSLY added indexes 
-		for i in range(0, objShape.size() - 3):
+		for i in range(0, polygon.size() - 3):
 			faces += "f " + str(counter) + " " + str(counter + 1) + " " + str(counter + 2) + "\n"
 			#topFace += str(counter + 1) + " "
 			counter += 3
@@ -131,13 +136,13 @@ func AccessFilePositionalData(path : String) -> Array:
 	#       the shape. The first enty in the polygon is the main shape while 
 	#       the rest are used to make holes inside of it. 
 	
-	var walls : Array
+	var polyGroups : Array
 	
 	var json_as_text = FileAccess.get_file_as_string(path)
 	var json_as_dict = JSON.parse_string(json_as_text) 
 	
 	if !json_as_dict:
-		return walls
+		return polyGroups
 	
 	# Each layer 
 	for data in json_as_dict["data"]["geometry"]:
@@ -148,74 +153,95 @@ func AccessFilePositionalData(path : String) -> Array:
 		# Add vertex data to array 
 		# NOTE: Polygons contain their main shape and then holes for the rest of
 		#       the array 
-		ProcessPloygons(json_as_dict["data"]["geometry"][data]["polygons"], walls)
+		ProcessPloygons(json_as_dict["data"]["geometry"][data]["polygons"], polyGroups)
 	
-	return walls
+	return polyGroups
 
 # Reads the polyGroup data and brings the main poly data into the shapes 
-func ProcessPloygons(polyGroup, shapes : Array):
+# Alters the data slightly, size and centering, then places it into a seperate
+# array 
+func ProcessPloygons(polyGroupsData : Array, polyGroups : Array):
 	
 	var sum : Vector2
 	var count : int 
 	
-	for major in polyGroup:
-		print_debug("This polygon has " + str(major.size()) + " shapes")
+	
+	
+	# NOTE: A polygroup is an array of polygons where the first is the real shape
+	#       and the rest are the holes within it 
+	
+	for polyGroup in polyGroupsData:
+		print_debug("This polygroup has " + str(polyGroup.size()) + " shapes")
+		
+		# Will hold the adjusted polygon and its holes 
+		var polyGroupMain : Array
 		
 		var index = 0
-		for polygon in major:
-			
-			# TODO: If more than one shape, any shape after the first
-			#       should be a hole that cuts out the main polygon 
-			
-			# Skip hole polygons 
-			if index > 0:
-				continue
-			
+		for polygon in polyGroup:
 			# Verticies in the polygon 
 			for v in polygon.size():
+				# Reduce size slightly 
 				var pos = Vector2(polygon[v][0], polygon[v][1]) / 10
 				polygon[v][0] = pos.x
 				polygon[v][1] = pos.y
+				
 				sum += pos
 				count += 1
 				index += 1
 			
-			shapes.push_back(polygon)
+			polyGroupMain.push_back(polygon)
+			#polyGroups.push_back(polygon)
+		
+		# Add the new set to polygroups 
+		polyGroups.push_back(polyGroupMain)
 	
+	# Center the shapes 
 	var avg = sum / count
-	for shape in shapes:
-		for v in shape.size():
-			shape[v][0] -= avg.x
-			shape[v][1] -= avg.y
+	for polyGroup in polyGroups:
+		for shape in polyGroup:
+			for v in shape.size():
+				shape[v][0] -= avg.x
+				shape[v][1] -= avg.y
+	
+	
 
 # Callable generation 
 func UpdateWorldMesh():
 	
-	st.clear()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES) 
+	var children = renderedWorld.get_children()
+	for child in children:
+		child.queue_free()
 	
-	for wall in wallVerticies:
+	var meshes : Array
+	
+	var meshCounter = 0
+	for polygon in meshPolygons:
 		
-		var counter = 1
+		st.clear()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES) 
 		
-		for point in wall:
+		meshes.push_back(meshRender.instantiate())
+		
+		for point in polygon:
 			var p = Vector3(point[0], point[1], point[2])
 			st.add_vertex(p)
-			counter += 1
 		
-		if hasRoofCheckBox.button_pressed:
-			for triangle in cap:
-				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
-				st.add_vertex(Vector3(triangle.pointB.x, height, triangle.pointB.y))
-				st.add_vertex(Vector3(triangle.pointC.x, height, triangle.pointC.y))
 		for triangle in cap:
 			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
 			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
 			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
+			
+			if hasRoofCheckBox.button_pressed:
+				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
+				st.add_vertex(Vector3(triangle.pointB.x, height, triangle.pointB.y))
+				st.add_vertex(Vector3(triangle.pointC.x, height, triangle.pointC.y))
 		st.index()
+		meshes[meshCounter].mesh = st.commit()
+		renderedWorld.add_child(meshes[meshCounter])
+		meshCounter += 1
 	
-	var mesh = st.commit()
-	meshRenderer.mesh = mesh
+	#var mesh = st.commit()
+	#meshRenderer.mesh = mesh
 
 # Sets the debug spheres to the current triangle 
 func UpdateTriangleVisual():

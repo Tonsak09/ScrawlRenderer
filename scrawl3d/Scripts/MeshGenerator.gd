@@ -15,7 +15,7 @@ var st : SurfaceTool
 
 
 var meshPolygons : Array
-var cap : Array[Triangle2D]
+var caps : Array
 
 
 func _ready() -> void:
@@ -38,22 +38,27 @@ func GenerateOBJ():
 	
 	# Cleanup old
 	meshPolygons.clear()
-	cap.clear()
+	caps.clear()
 	
 	# Access the file 
 	var polyGroups = AccessFilePositionalData(path)
-	var combined : Array
 	
 	for polyGroup in polyGroups:
 		
-		var isMainPolygon = true
+		# Create wall verticies 
 		for polygon in polyGroup:
 			meshPolygons.push_back(ExtrudePositions(polygon, height))
 		
 		# Triangulate top for an entire polygroup 
+		var holes = polyGroup.slice(1, polyGroup.size())
+		
+		for hole in holes:
+			triangulation.FuseHoleIntoPoints(polyGroup[0], hole) 
+		
+		polyGroup[0] = Array_No_Continous(polyGroup[0])
 		var allPoints = polyGroup[0].duplicate()
-		var corners = polyGroup[0].size()
-		triangulation.Triangulate(allPoints, polyGroup[0], cap, corners)
+		var corners = allPoints.size()
+		triangulation.Triangulate(allPoints, polyGroup[0], holes, caps, corners, 0)
 		
 		#WriteToFile("./Output/" + name + ".obj", wallVerticies, cap)
 		UpdateWorldMesh()
@@ -202,8 +207,6 @@ func ProcessPloygons(polyGroupsData : Array, polyGroups : Array):
 			for v in shape.size():
 				shape[v][0] -= avg.x
 				shape[v][1] -= avg.y
-	
-	
 
 # Callable generation 
 func UpdateWorldMesh():
@@ -226,7 +229,7 @@ func UpdateWorldMesh():
 			var p = Vector3(point[0], point[1], point[2])
 			st.add_vertex(p)
 		
-		for triangle in cap:
+		for triangle in caps:
 			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
 			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
 			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
@@ -251,3 +254,19 @@ func UpdateTriangleVisual():
 	triangleCorners[1].global_position = Vector3(tri.pointB.x, height, tri.pointB.y)
 	triangleCorners[2].global_position = Vector3(tri.pointC.x, height, tri.pointC.y)
 	
+
+# Removes items that repeat next to each other 
+func Array_No_Continous(array: Array) -> Array:
+	var unique: Array = []
+	
+	for item in array:
+		
+		var index = unique.size() - 1
+		if index < 0:
+			unique.push_back(item)
+			continue
+		
+		if unique[index] != item:
+			unique.push_back(item)
+	
+	return unique

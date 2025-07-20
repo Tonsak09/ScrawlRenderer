@@ -109,6 +109,7 @@ colors = Array[Color]([Color(0.839216, 0, 0, 1), Color(0, 0.886275, 0, 1), Color
 [node name="3DWorld" type="Node3D" parent="ViewportHolder/Viewports/3D/SubViewport"]
 
 [node name="DebugSpheres" type="Node3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld"]
+visible = false
 
 [node name="Node3D" type="MeshInstance3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld/DebugSpheres"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 27.96)
@@ -126,21 +127,20 @@ mesh = SubResource("SphereMesh_8tqrq")
 skeleton = NodePath("../../RenderedWorld")
 
 [node name="Camera3D" type="Camera3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10.3461, 11.1936)
 script = ExtResource("3_td78p")
 speed = 15.0
 mouseSpeed = 0.001
 
 [node name="RenderedWorld" type="Node3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld"]
 
-[node name="MeshGenerator" type="Node" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld" node_paths=PackedStringArray("world", "mapList", "renderedWorld", "hasRoofCheckBox", "triangleCorners")]
+[node name="MeshGenerator" type="Node" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld" node_paths=PackedStringArray("world", "mapList", "renderedWorld", "hasRoofCheckBox")]
 script = ExtResource("2_vwj1f")
 world = NodePath("../RenderedWorld")
 mapList = NodePath("../../../../../../Controls/TabContainer/Import/MapList")
 height = 3.0
 renderedWorld = NodePath("../RenderedWorld")
 hasRoofCheckBox = NodePath("../../../../../../Controls/TabContainer/Import/CheckBox")
-triangleCorners = [NodePath("../DebugSpheres/Node3D"), NodePath("../DebugSpheres/Node3D2"), NodePath("../DebugSpheres/Node3D3")]
 
 [node name="2D" type="Control" parent="ViewportHolder/Viewports"]
 visible = false

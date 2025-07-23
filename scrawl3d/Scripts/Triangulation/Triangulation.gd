@@ -94,13 +94,6 @@ func FuseHoleIntoPoints(points : Array, hole : Array):
 				minHole  = i
 				minPoint = j
 	
-	# Create unified polygon 
-	#var holdP = points[minPoint]
-	#var holdH = hole[minHole]
-	#for offset in range(hole.size() - 1, -1, -1):
-		#var i = (minHole + offset) % hole.size()
-		#points.insert(minPoint, hole[i])
-	
 	var unified : Array
 	unified.resize(points.size() + hole.size() + 2)
 	for i in points.size() + 1:
@@ -148,7 +141,6 @@ func IsInside(vertA : Vector2, vertB : Vector2, vertC : Vector2, pos : Vector2):
 	
 	#/* Check if sum of A1, A2 and A3 is same as A */
 	return diff == 0
-
 
 func DoesLineIntersectPolygon(pointA : Vector2, pointB : Vector2, polygon : Array) -> bool:
 	for i in polygon.size():

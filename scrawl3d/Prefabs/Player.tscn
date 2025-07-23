@@ -1,0 +1,26 @@
+[gd_scene load_steps=4 format=3 uid="uid://wrq2xiwjts2h"]
+
+[ext_resource type="Script" path="res://Scripts/CamController.gd" id="1_f77s8"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_2c3n6"]
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_a5apw"]
+properties/0/path = NodePath(".:position")
+properties/0/spawn = true
+properties/0/replication_mode = 1
+properties/1/path = NodePath(".:rotation")
+properties/1/spawn = true
+properties/1/replication_mode = 1
+
+[node name="Player" type="Camera3D"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0)
+script = ExtResource("1_f77s8")
+speed = 15.0
+mouseSpeed = 0.001
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, -3.21304)
+mesh = SubResource("SphereMesh_2c3n6")
+
+[node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]
+replication_config = SubResource("SceneReplicationConfig_a5apw")

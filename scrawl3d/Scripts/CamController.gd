@@ -6,7 +6,21 @@ extends Camera3D
 var rotX = 0
 var rotY = 0
 
+func _enter_tree() -> void:
+	set_multiplayer_authority(str(name).to_int())
+
+func _ready() -> void:
+	if !is_multiplayer_authority():
+		return
+	
+	#cam.current = true
+
 func _process(delta: float) -> void:
+	if !is_multiplayer_authority():
+		return
+	
+	print_debug(get_parent().get_child_count())
+	
 	if Input.is_action_pressed("Forward"):
 		translate(Vector3.FORWARD * speed * delta)
 	elif Input.is_action_pressed("Backward"):
@@ -21,6 +35,9 @@ func _process(delta: float) -> void:
 		translate(Vector3.DOWN * speed * delta)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if !is_multiplayer_authority():
+		return
+	
 	if event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_RIGHT: 
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		# modify accumulated mouse rotation
@@ -34,4 +51,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 func UpdateMoveSpeed(value: float):
+	if !is_multiplayer_authority():
+		return
 	speed = value

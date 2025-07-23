@@ -1,10 +1,10 @@
 [gd_scene load_steps=12 format=3 uid="uid://sx764maq7mvj"]
 
-[ext_resource type="Script" path="res://Scripts/Renderer2D.gd" id="1_j5yi6"]
-[ext_resource type="Script" path="res://Scripts/MeshGenerator.gd" id="2_vwj1f"]
-[ext_resource type="Script" path="res://Scripts/CamController.gd" id="3_td78p"]
-[ext_resource type="Script" path="res://Scripts/MapList.gd" id="5_si8gl"]
-[ext_resource type="Script" path="res://Scripts/SliderInput.gd" id="6_qdf7j"]
+[ext_resource type="Script" path="res://Scripts/EditorUI/Renderer2D.gd" id="1_j5yi6"]
+[ext_resource type="Script" path="res://Scripts/EditorUI/MeshGenerator.gd" id="2_vwj1f"]
+[ext_resource type="Script" path="res://Scripts/EditorUI/MapList.gd" id="5_si8gl"]
+[ext_resource type="Script" path="res://Scripts/EditorUI/SliderInput.gd" id="6_qdf7j"]
+[ext_resource type="Script" path="res://Scripts/Network/NetworkSetup.gd" id="6_uu5mh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7c2ay"]
 sky_top_color = Color(0.512916, 0.413808, 0.48279, 1)
@@ -53,6 +53,30 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.148273, 0.290083, 0.331237, 1)
+
+[node name="TabArea" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 31.0
+grow_horizontal = 2
+color = Color(0.180005, 0.180005, 0.180005, 1)
+
+[node name="TabBar" type="TabBar" parent="TabArea"]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_top = -15.5
+offset_bottom = 15.5
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
+tab_count = 3
+tab_0/title = "File"
+tab_1/title = "Export"
+tab_2/title = "Multiplayer"
 
 [node name="ViewportHolder" type="Control" parent="."]
 layout_mode = 1
@@ -125,12 +149,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 27.96)
 mesh = SubResource("SphereMesh_8tqrq")
 skeleton = NodePath("../../RenderedWorld")
 
-[node name="Camera3D" type="Camera3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 25, 0)
-script = ExtResource("3_td78p")
-speed = 15.0
-mouseSpeed = 0.001
-
 [node name="RenderedWorld" type="Node3D" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld"]
 
 [node name="MeshGenerator" type="Node" parent="ViewportHolder/Viewports/3D/SubViewport/3DWorld" node_paths=PackedStringArray("world", "mapList", "renderedWorld", "hasRoofCheckBox", "triangleCorners")]
@@ -147,13 +165,61 @@ visible = false
 layout_mode = 2
 metadata/_tab_index = 1
 
-[node name="Speed" type="Control" parent="ViewportHolder"]
+[node name="Networking" type="Control" parent="ViewportHolder/Viewports" node_paths=PackedStringArray("spawnParent")]
+visible = false
+layout_mode = 2
+script = ExtResource("6_uu5mh")
+spawnParent = NodePath("../3D/SubViewport/3DWorld")
+metadata/_tab_index = 2
+
+[node name="MultiplayerMenu" type="PanelContainer" parent="ViewportHolder/Viewports/Networking"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu"]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Multiplayer Menu"
+horizontal_alignment = 1
+
+[node name="Host Button" type="Button" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Host"
+
+[node name="Join Button" type="Button" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Join"
+
+[node name="AddressEntry" type="LineEdit" parent="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "Enter Address to Join Here..."
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="ViewportHolder/Viewports/Networking"]
+_spawnable_scenes = PackedStringArray("res://Prefabs/Player.tscn")
+spawn_path = NodePath("../../3D/SubViewport/3DWorld")
+
+[node name="Speed3D" type="Control" parent="ViewportHolder"]
+layout_mode = 2
 anchors_preset = 0
 offset_left = 8.0
 offset_right = 160.0
 offset_bottom = 40.0
 
-[node name="SpeedSlider" type="HSlider" parent="ViewportHolder/Speed"]
+[node name="SpeedSlider" type="HSlider" parent="ViewportHolder/Speed3D"]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -167,7 +233,7 @@ max_value = 50.0
 step = 0.1
 value = 15.0
 
-[node name="Label" type="Label" parent="ViewportHolder/Speed"]
+[node name="Label" type="Label" parent="ViewportHolder/Speed3D"]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
@@ -292,30 +358,7 @@ offset_top = 32.0
 offset_right = 234.0
 offset_bottom = 72.0
 
-[node name="ColorRect" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-offset_bottom = 31.0
-grow_horizontal = 2
-color = Color(0.180005, 0.180005, 0.180005, 1)
-
-[node name="TabBar" type="TabBar" parent="ColorRect"]
-layout_mode = 1
-anchors_preset = 14
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_top = -15.5
-offset_bottom = 15.5
-grow_horizontal = 2
-grow_vertical = 2
-current_tab = 0
-tab_count = 3
-tab_0/title = "File"
-tab_1/title = "Export"
-tab_2/title = "Multiplayer"
-
-[connection signal="value_changed" from="ViewportHolder/Speed/SpeedSlider" to="ViewportHolder/Viewports/3D/SubViewport/3DWorld/Camera3D" method="UpdateMoveSpeed"]
+[connection signal="pressed" from="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer/Host Button" to="ViewportHolder/Viewports/Networking" method="_on_host_button_pressed"]
+[connection signal="pressed" from="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer/Join Button" to="ViewportHolder/Viewports/Networking" method="_on_join_button_pressed"]
 [connection signal="pressed" from="Controls/TabContainer/Import/Refresh" to="Controls/TabContainer/Import/MapList" method="RefreshMaps"]
 [connection signal="pressed" from="Controls/TabContainer/Import/Generate3D" to="ViewportHolder/Viewports/3D/SubViewport/3DWorld/MeshGenerator" method="GenerateOBJ"]

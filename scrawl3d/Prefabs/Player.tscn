@@ -19,7 +19,7 @@ speed = 15.0
 mouseSpeed = 0.001
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, -3.21304)
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 mesh = SubResource("SphereMesh_2c3n6")
 
 [node name="MultiplayerSynchronizer" type="MultiplayerSynchronizer" parent="."]

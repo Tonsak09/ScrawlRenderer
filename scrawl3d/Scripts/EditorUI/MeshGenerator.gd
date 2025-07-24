@@ -43,8 +43,14 @@ func GenerateOBJ():
 	# Access the file 
 	var polyGroups = AccessFilePositionalData(path)
 	
+	ProcessPolyGroups(polyGroups)
+	#TransferMeshDataToPeers.rpc(polyGroups)
+	
+	var json_as_text = FileAccess.get_file_as_string(path)
+	TransferJsonAsText.rpc(json_as_text)
+
+func ProcessPolyGroups(polyGroups):
 	for polyGroup in polyGroups:
-		
 		# Create wall verticies 
 		for polygon in polyGroup:
 			meshPolygons.push_back(ExtrudePositions(polygon, height))
@@ -61,7 +67,7 @@ func GenerateOBJ():
 		triangulation.Triangulate(allPoints, polyGroup[0], holes, caps, corners, 0)
 		
 		#WriteToFile("./Output/" + name + ".obj", wallVerticies, cap)
-		UpdateWorldMesh()
+	UpdateWorldMesh()
 
 # Write array of 3D positions to a .obj file format 
 func WriteToFile(path : String, polyGroups : Array, cap : Array):
@@ -132,7 +138,7 @@ func ExtrudePositions(positions : Array, extrudeHieght : float) -> Array[Vector3
 		counter += 6
 	
 	return objPositions
-	
+
 # Reads map data to generate 2D polygon data 
 func AccessFilePositionalData(path : String) -> Array:
 	
@@ -162,6 +168,32 @@ func AccessFilePositionalData(path : String) -> Array:
 	
 	return polyGroups
 
+func AccessFilePositionalDataAsTextData(jsonAsText : String) -> Array:
+	# NOTE: Withing the polygons sections there are two arrays, one for the 
+	#       shape overall and then other for the shapes that make up and cutup
+	#       the shape. The first enty in the polygon is the main shape while 
+	#       the rest are used to make holes inside of it. 
+	
+	var polyGroups : Array
+	
+	var json_as_dict = JSON.parse_string(jsonAsText) 
+	
+	if !json_as_dict:
+		return polyGroups
+	
+	# Each layer 
+	for data in json_as_dict["data"]["geometry"]:
+		# Don't try to read empty 
+		if json_as_dict["data"]["geometry"][data]["polygons"].size() == 0:
+			continue
+		
+		# Add vertex data to array 
+		# NOTE: Polygons contain their main shape and then holes for the rest of
+		#       the array 
+		ProcessPloygons(json_as_dict["data"]["geometry"][data]["polygons"], polyGroups)
+	
+	return polyGroups
+
 # Reads the polyGroup data and brings the main poly data into the shapes 
 # Alters the data slightly, size and centering, then places it into a seperate
 # array 
@@ -170,13 +202,11 @@ func ProcessPloygons(polyGroupsData : Array, polyGroups : Array):
 	var sum : Vector2
 	var count : int 
 	
-	
-	
 	# NOTE: A polygroup is an array of polygons where the first is the real shape
 	#       and the rest are the holes within it 
 	
 	for polyGroup in polyGroupsData:
-		print_debug("This polygroup has " + str(polyGroup.size()) + " shapes")
+		#print_debug("This polygroup has " + str(polyGroup.size()) + " shapes")
 		
 		# Will hold the adjusted polygon and its holes 
 		var polyGroupMain : Array
@@ -230,9 +260,9 @@ func UpdateWorldMesh():
 			st.add_vertex(p)
 		
 		for triangle in caps:
-			st.add_vertex(Vector3(triangle.pointA.x, 0, triangle.pointA.y))
-			st.add_vertex(Vector3(triangle.pointB.x, 0, triangle.pointB.y))
-			st.add_vertex(Vector3(triangle.pointC.x, 0, triangle.pointC.y))
+			st.add_vertex(Vector3(triangle.pointA[0], 0, triangle.pointA[1]))
+			st.add_vertex(Vector3(triangle.pointB[0], 0, triangle.pointB[1]))
+			st.add_vertex(Vector3(triangle.pointC[0], 0, triangle.pointC[1]))
 			
 			if hasRoofCheckBox.button_pressed:
 				st.add_vertex(Vector3(triangle.pointA.x, height, triangle.pointA.y))
@@ -270,3 +300,30 @@ func Array_No_Continous(array: Array) -> Array:
 			unique.push_back(item)
 	
 	return unique
+
+@rpc("any_peer", "reliable", "call_remote")
+func TransferMeshDataToPeers(polyGroups):
+	meshPolygons.clear()
+	caps.clear()
+	
+	#meshPolygons = polyGroups
+	
+	var children = renderedWorld.get_children()
+	for child in children:
+		child.queue_free()
+	
+	print_debug(renderedWorld.get_child_count())
+	ProcessPolyGroups(polyGroups)
+	print_debug(renderedWorld.get_child_count())
+
+@rpc("any_peer", "reliable", "call_remote")
+func TransferJsonAsText(jsonAstext : String):
+	
+	# Cleanup old
+	meshPolygons.clear()
+	caps.clear()
+	
+	# Access the file 
+	var polyGroups = AccessFilePositionalDataAsTextData(jsonAstext)
+	
+	ProcessPolyGroups(polyGroups)

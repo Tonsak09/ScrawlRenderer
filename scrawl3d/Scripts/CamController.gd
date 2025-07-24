@@ -13,13 +13,12 @@ func _ready() -> void:
 	if !is_multiplayer_authority():
 		return
 	
-	#cam.current = true
+	current = true
 
 func _process(delta: float) -> void:
 	if !is_multiplayer_authority():
 		return
 	
-	print_debug(get_parent().get_child_count())
 	
 	if Input.is_action_pressed("Forward"):
 		translate(Vector3.FORWARD * speed * delta)

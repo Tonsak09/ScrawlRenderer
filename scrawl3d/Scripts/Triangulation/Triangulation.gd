@@ -55,8 +55,8 @@ func Triangulate(recordOfAllPoints : Array, points : Array, holes : Array, trian
 		counter += 1
 		
 	
-	if corners >= 3:
-		assert("FAILED") 
+	#if corners >= 3:
+	#	assert("FAILED") 
 	#print_debug("Mesh triangulated successfulyl!")
 
 func FuseHoleIntoPoints(points : Array, hole : Array):

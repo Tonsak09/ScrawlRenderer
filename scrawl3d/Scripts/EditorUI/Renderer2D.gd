@@ -27,13 +27,10 @@ func _ready() -> void:
 
 
 func _draw():
-	#var godot_blue : Color = Color("478cbf")
-	
-	#draw_polygon(head, [ godot_blue ])
-	var counter = 1
+	#var counter = 1
 	for shape in shapes:
 		draw_polygon(shape, [ Color.ANTIQUE_WHITE ])
-		counter += 1
+		#counter += 1
 
 func parse_json():
 	

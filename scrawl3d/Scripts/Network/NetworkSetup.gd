@@ -55,4 +55,5 @@ func upnpSetup():
 	var mapResult = upnp.add_port_mapping(PORT)
 	assert("UPNP Port Mapping Faileed! Error %s" % mapResult)
 	
-	print("Success! Join Address: %s" % upnp.query_external_address())
+	var tempAddress = "xxx.xxx.xx.xxx"
+	print("Success! Join Address: %s" % tempAddress) #upnp.query_external_address())

@@ -30,11 +30,11 @@ func GenerateOBJ():
 	# Ensure valid 
 	if mapList.get_selected_items().size() == 0:
 		return 
-	var name = mapList.get_item_text(mapList.get_selected_items()[0])
-	if !name:
+	var title = mapList.get_item_text(mapList.get_selected_items()[0])
+	if !title:
 		return
 	
-	var path = "./Maps/" + name + ".json"
+	var path = "./Maps/" + title + ".json"
 	
 	# Cleanup old
 	meshPolygons.clear()

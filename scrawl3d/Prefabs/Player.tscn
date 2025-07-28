@@ -18,7 +18,7 @@ script = ExtResource("1_f77s8")
 speed = 15.0
 mouseSpeed = 0.001
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="Mesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 mesh = SubResource("SphereMesh_2c3n6")
 

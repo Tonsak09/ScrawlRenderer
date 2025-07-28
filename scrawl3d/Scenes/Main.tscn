@@ -1,7 +1,8 @@
-[gd_scene load_steps=12 format=3 uid="uid://sx764maq7mvj"]
+[gd_scene load_steps=13 format=3 uid="uid://sx764maq7mvj"]
 
 [ext_resource type="Script" path="res://Scripts/EditorUI/Renderer2D.gd" id="1_j5yi6"]
 [ext_resource type="Script" path="res://Scripts/EditorUI/MeshGenerator.gd" id="2_vwj1f"]
+[ext_resource type="PackedScene" uid="uid://ctuqtjbbrqijt" path="res://Prefabs/Character.tscn" id="4_7wl3o"]
 [ext_resource type="Script" path="res://Scripts/EditorUI/MapList.gd" id="5_si8gl"]
 [ext_resource type="Script" path="res://Scripts/Network/NetworkSetup.gd" id="6_uu5mh"]
 
@@ -99,6 +100,7 @@ anchor_bottom = 1.0
 offset_left = 265.0
 offset_top = 70.0
 offset_right = -14.0
+offset_bottom = -11.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -124,7 +126,7 @@ stretch = true
 
 [node name="SubViewport" type="SubViewport" parent="ViewportHolder/Viewports/3D/3DSubview"]
 handle_input_locally = false
-size = Vector2i(873, 578)
+size = Vector2i(873, 567)
 render_target_update_mode = 4
 
 [node name="ColorRect2" type="ColorRect" parent="ViewportHolder/Viewports/3D/3DSubview/SubViewport"]
@@ -182,6 +184,8 @@ triangleCorners = [NodePath("../DebugSpheres/Node3D"), NodePath("../DebugSpheres
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="ViewportHolder/Viewports/3D/3DSubview/SubViewport/3DWorld"]
 _spawnable_scenes = PackedStringArray("res://Prefabs/Player.tscn")
 spawn_path = NodePath("..")
+
+[node name="Character" parent="ViewportHolder/Viewports/3D/3DSubview/SubViewport/3DWorld" instance=ExtResource("4_7wl3o")]
 
 [node name="Speed3D" type="Control" parent="ViewportHolder/Viewports/3D"]
 layout_mode = 3
@@ -270,6 +274,7 @@ anchors_preset = 9
 anchor_bottom = 1.0
 offset_top = 39.0
 offset_right = 1.0
+offset_bottom = -11.0
 grow_vertical = 2
 
 [node name="TabContainer" type="TabContainer" parent="Controls"]

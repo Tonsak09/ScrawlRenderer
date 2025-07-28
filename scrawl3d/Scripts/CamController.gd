@@ -6,6 +6,9 @@ extends Camera3D
 var rotX = 0
 var rotY = 0
 
+var rayOrigin : Vector3
+var rayEnd : Vector3
+
 func _enter_tree() -> void:
 	set_multiplayer_authority(str(name).to_int())
 
@@ -32,6 +35,19 @@ func _process(delta: float) -> void:
 		translate(Vector3.UP * speed * delta)
 	elif Input.is_action_pressed("Down"):
 		translate(Vector3.DOWN * speed * delta)
+
+func _physics_process(delta: float) -> void:
+	var spaceState = get_world_3d().direct_space_state
+	var mousePos = get_viewport().get_mouse_position()
+	rayOrigin = project_ray_origin(mousePos)
+	rayEnd = rayOrigin + project_ray_normal(mousePos) * 2000
+	var query = PhysicsRayQueryParameters3D.create(rayOrigin, rayEnd)
+	var intersection = spaceState.intersect_ray(query)
+	
+	if !intersection.is_empty():
+		var pos = intersection.position
+		#look_at()
+		$Mesh.global_position = pos 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if !is_multiplayer_authority():

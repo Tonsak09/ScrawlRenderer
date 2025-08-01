@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3 uid="uid://cgwk3ysyk4387"]
+
+[ext_resource type="Script" path="res://Scripts/Style.gd" id="1_6uha7"]
+[ext_resource type="PackedScene" uid="uid://bnptneu1q7w7x" path="res://Prefabs/SliderEdit.tscn" id="2_mj8gw"]
+
+[node name="Style" type="Control" node_paths=PackedStringArray("environmentGizmos", "characterGizmos")]
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_6uha7")
+environmentGizmos = NodePath("Environment")
+characterGizmos = NodePath("Character")
+metadata/_tab_index = 1
+
+[node name="Environment" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SliderEdit" parent="Environment" instance=ExtResource("2_mj8gw")]
+
+[node name="Character" type="Control" parent="."]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+scale = Vector2(1.00476, 1)

@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://bnptneu1q7w7x"]
+
+[ext_resource type="Script" path="res://Scripts/EditorUI/ValueSlider.gd" id="1_33jey"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_bjvvy"]
+font_color = Color(0.93408, 0.93408, 0.93408, 1)
+
+[node name="SliderEdit" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 8.0
+offset_top = 32.0
+offset_right = 234.0
+offset_bottom = 72.0
+script = ExtResource("1_33jey")
+
+[node name="HSlider" type="HSlider" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 105.0
+offset_top = -7.0
+offset_right = 180.0
+offset_bottom = 9.0
+grow_vertical = 2
+
+[node name="TextEdit" type="TextEdit" parent="."]
+layout_mode = 0
+offset_left = 184.0
+offset_right = 226.0
+offset_bottom = 40.0
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 0
+offset_left = 5.0
+offset_top = 8.0
+offset_right = 96.0
+offset_bottom = 31.0
+text = "Cell Density"
+label_settings = SubResource("LabelSettings_bjvvy")
+
+[connection signal="text_changed" from="TextEdit" to="." method="TextEditChange"]

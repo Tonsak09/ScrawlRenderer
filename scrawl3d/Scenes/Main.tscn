@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://sx764maq7mvj"]
+[gd_scene load_steps=12 format=3 uid="uid://sx764maq7mvj"]
 
 [ext_resource type="Script" path="res://Scripts/EditorUI/Renderer2D.gd" id="1_j5yi6"]
 [ext_resource type="Script" path="res://Scripts/EditorUI/MeshGenerator.gd" id="2_vwj1f"]
 [ext_resource type="PackedScene" uid="uid://ctuqtjbbrqijt" path="res://Prefabs/Character.tscn" id="4_7wl3o"]
 [ext_resource type="Script" path="res://Scripts/EditorUI/MapList.gd" id="5_si8gl"]
+[ext_resource type="PackedScene" uid="uid://cgwk3ysyk4387" path="res://Prefabs/StyleInspector.tscn" id="6_pj16o"]
 [ext_resource type="Script" path="res://Scripts/Network/NetworkSetup.gd" id="6_uu5mh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_7c2ay"]
@@ -24,24 +25,6 @@ tonemap_mode = 2
 
 [sub_resource type="LabelSettings" id="LabelSettings_5ty72"]
 font_color = Color(0.144063, 0.144063, 0.144063, 1)
-
-[sub_resource type="GDScript" id="GDScript_1yrcq"]
-script/source = "extends Control
-
-@export var worldMesh : MeshInstance3D
-
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
-	pass # Replace with function body.
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta: float) -> void:
-	pass
-"
-
-[sub_resource type="LabelSettings" id="LabelSettings_bjvvy"]
-font_color = Color(0.93408, 0.93408, 0.93408, 1)
 
 [node name="World" type="Control"]
 layout_mode = 3
@@ -342,45 +325,9 @@ offset_bottom = 187.0
 grow_horizontal = 2
 color = Color(1, 1, 1, 0.494118)
 
-[node name="Style" type="Control" parent="Controls/TabContainer"]
+[node name="Style" parent="Controls/TabContainer" instance=ExtResource("6_pj16o")]
 visible = false
 layout_mode = 2
-metadata/_tab_index = 1
-
-[node name="CellDensity" type="Control" parent="Controls/TabContainer/Style"]
-anchors_preset = 0
-offset_left = 8.0
-offset_top = 32.0
-offset_right = 234.0
-offset_bottom = 72.0
-script = SubResource("GDScript_1yrcq")
-
-[node name="HSlider" type="HSlider" parent="Controls/TabContainer/Style/CellDensity"]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 105.0
-offset_top = -7.0
-offset_right = 180.0
-offset_bottom = 9.0
-grow_vertical = 2
-
-[node name="Label" type="Label" parent="Controls/TabContainer/Style/CellDensity"]
-layout_mode = 0
-offset_left = 5.0
-offset_top = 8.0
-offset_right = 96.0
-offset_bottom = 31.0
-text = "Cell Density"
-label_settings = SubResource("LabelSettings_bjvvy")
-
-[node name="TextEdit" type="TextEdit" parent="Controls/TabContainer/Style"]
-layout_mode = 0
-offset_left = 192.0
-offset_top = 32.0
-offset_right = 234.0
-offset_bottom = 72.0
 
 [connection signal="spawned" from="ViewportHolder/Viewports/3D/3DSubview/SubViewport/3DWorld/MultiplayerSpawner" to="ViewportHolder/Viewports/Networking" method="_on_multiplayer_spawner_spawned"]
 [connection signal="pressed" from="ViewportHolder/Viewports/Networking/MultiplayerMenu/MarginContainer/VBoxContainer/Host Button" to="ViewportHolder/Viewports/Networking" method="_on_host_button_pressed"]

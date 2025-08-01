@@ -46,8 +46,9 @@ func _physics_process(delta: float) -> void:
 	
 	if !intersection.is_empty():
 		var pos = intersection.position
+		print_debug(intersection.values())
 		#look_at()
-		$Mesh.global_position = pos 
+		#$Mesh.global_position = pos 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if !is_multiplayer_authority():
